@@ -9,7 +9,6 @@ import {
 import { auth, type UserType } from '@/app/(auth)/auth';
 import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
 import {
-  createStreamId,
   deleteChatById,
   getChatById,
   getMessageCountByUserId,
@@ -139,15 +138,13 @@ export async function POST(request: Request) {
           chatId: id,
           id: message.id,
           role: 'user',
-          parts: message.parts,
-          attachments: [],
+          content: message.parts, // Use content field for old Message table
           createdAt: new Date(),
         },
       ],
     });
 
-    const streamId = generateUUID();
-    await createStreamId({ streamId, chatId: id });
+    // No stream ID creation needed - official AI SDK handles streaming internally
 
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
@@ -195,9 +192,8 @@ export async function POST(request: Request) {
           messages: messages.map((message) => ({
             id: message.id,
             role: message.role,
-            parts: message.parts,
+            content: message.parts, // Use content field for old Message table
             createdAt: new Date(),
-            attachments: [],
             chatId: id,
           })),
         });
@@ -219,9 +215,12 @@ export async function POST(request: Request) {
       return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
     }
   } catch (error) {
+    console.error('Chat API error:', error);
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }
+    // Return a generic error response for any other errors
+    return new ChatSDKError('internal_server_error:chat', 'An unexpected error occurred').toResponse();
   }
 }
 
