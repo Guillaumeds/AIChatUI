@@ -206,6 +206,8 @@ export async function POST(request: Request) {
     const streamContext = getStreamContext();
 
     if (streamContext) {
+      // Generate a stream ID for resumable streams
+      const streamId = generateUUID();
       return new Response(
         await streamContext.resumableStream(streamId, () =>
           stream.pipeThrough(new JsonToSseTransformStream()),
@@ -220,7 +222,7 @@ export async function POST(request: Request) {
       return error.toResponse();
     }
     // Return a generic error response for any other errors
-    return new ChatSDKError('internal_server_error:chat', 'An unexpected error occurred').toResponse();
+    return new ChatSDKError('offline:chat', 'An unexpected error occurred').toResponse();
   }
 }
 
