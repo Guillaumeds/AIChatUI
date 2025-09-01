@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState, useId } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -47,6 +47,7 @@ export function VisibilitySelector({
   chatId: string;
   selectedVisibilityType: VisibilityType;
 } & React.ComponentProps<typeof Button>) {
+  const id = useId();
   const [open, setOpen] = useState(false);
 
   const { visibilityType, setVisibilityType } = useChatVisibility({
@@ -69,6 +70,7 @@ export function VisibilitySelector({
         )}
       >
         <Button
+          id={`visibility-selector-${id}`}
           data-testid="visibility-selector"
           variant="outline"
           className="hidden md:flex md:px-2 md:h-[34px]"
